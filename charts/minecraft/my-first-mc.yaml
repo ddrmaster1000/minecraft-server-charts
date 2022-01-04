@@ -1,0 +1,204 @@
+# These are value overrides for the helm chart defined here
+# https://github.com/itzg/minecraft-server-charts
+
+# It contains the most common parameters, but for even more settings, see
+# https://github.com/itzg/minecraft-server-charts/blob/master/charts/minecraft/values.yaml
+
+# to use this file execute the following two commands
+# helm repo add minecraft-server-charts https://itzg.github.io/minecraft-server-charts/
+# helm upgrade --install RELEASE_NAME -f THIS_FILE.yaml --set minecraftServer.eula=true,rcon.password=YOUR_PWD minecraft-server-charts/minecraft
+
+# Steven Here!
+# helm upgrade --install my-first-mc -f my-first-mc.yaml --set minecraftServer.eula=true,rcon.password=steven minecraft-server-charts/minecraft
+
+# ref: https://hub.docker.com/r/itzg/minecraft-server/
+image: itzg/minecraft-server
+imageTag: latest
+imagePullSecret: ""
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  requests:
+    memory: 2000Mi
+    cpu: 1000m
+
+# upgrade strategy type (e.g. Recreate or RollingUpdate)
+# Keep as Recreate because the world hates us: https://github.com/helm/charts/issues/21230
+strategyType: Recreate
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+securityContext:
+  # Security context settings
+  runAsUser: 1000
+  fsGroup: 2000
+# Most of these map to environment variables. See Minecraft for details:
+# https://hub.docker.com/r/itzg/minecraft-server/
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  failureThreshold: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  failureThreshold: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+startupProbe:
+  enabled: false
+  failureThreshold: 30
+  periodSeconds: 10
+
+# Common minecraft server settings
+minecraftServer:
+  # REQUIRED this means you get nodePort exposed on all nodes and will get
+  # directed to the correct node if you connect to any
+  serviceType: NodePort
+  # restore the world from a backup on first execution (requires NFS volume - see below)
+  nodePort: 30100
+  # This must be overridden, since we can't accept this for the user.
+  eula: "FALSE"
+  # One of: LATEST, SNAPSHOT, or a specific version (ie: "1.7.9").
+  version: "LATEST"
+  # This can be one of "VANILLA", "FORGE", "SPIGOT", "BUKKIT", "PAPER", "FTBA", "SPONGEVANILLA", "CURSEFORGE"
+  type: "VANILLA"
+  # If type is set to FORGE, this sets the version; this is ignored if forgeInstallerUrl is set
+  forgeVersion:
+  # If type is set to SPONGEVANILLA, this sets the version
+  spongeVersion:
+  # If type is set to FORGE, this sets the URL to download the Forge installer
+  forgeInstallerUrl:
+  # If type is set to BUKKIT, this sets the URL to download the Bukkit package
+  bukkitDownloadUrl:
+  # If type is set to SPIGOT, this sets the URL to download the Spigot package
+  spigotDownloadUrl:
+  # If type is set to PAPER, this sets the URL to download the PaperSpigot package
+  paperDownloadUrl:
+  # If type is set to FTB, this sets the server mod to run. You can also provide the URL to download the FTB package
+  ftbServerMod:
+  # If type is set to CURSEFORGE, this sets the server mod to run. Can also provide url to curseforge package.
+  cfServerMod:
+  # Set to true if running Feed The Beast and get an error like "unable to launch forgemodloader"
+  ftbLegacyJavaFixer: false
+  # One of: peaceful, easy, normal, and hard
+  difficulty: easy
+  # A comma-separated list of player names to whitelist.
+  whitelist: firebirdben,mellshrew
+  # A comma-separated list of player names who should be admins.
+  ops: firebirdben,mellshrew
+  # A server icon URL for server listings. Auto-scaled and transcoded.
+  icon: https://i.kym-cdn.com/entries/icons/original/000/002/252/NoMeGusta.jpg
+  # Max connected players.
+  maxPlayers: 5
+  # This sets the maximum possible size in blocks, expressed as a radius, that the world border can obtain.
+  maxWorldSize: 10000
+  # Allows players to travel to the Nether.
+  allowNether: true
+  # Allows server to announce when a player gets an achievement.
+  announcePlayerAchievements: true
+  # Enables command blocks.
+  enableCommandBlock: true
+  # If true, players will always join in the default gameMode even if they were previously set to something else.
+  forcegameMode: false
+  # Defines whether structures (such as villages) will be generated.
+  generateStructures: true
+  # If set to true, players will be set to spectator mode if they die.
+  hardcore: false
+  # The maximum height in which building is allowed.
+  maxBuildHeight: 256
+  # The maximum number of milliseconds a single tick may take before the server watchdog stops the server with the message. -1 disables this entirely.
+  maxTickTime: 60000
+  # Determines if animals will be able to spawn.
+  spawnAnimals: true
+  # Determines if monsters will be spawned.
+  spawnMonsters: true
+  # Determines if villagers will be spawned.
+  spawnNPCs: true
+  # Sets the area that non-ops can not edit (0 to disable)
+  spawnProtection: 16
+  # Max view distance (in chunks).
+  viewDistance: 10
+  # Define this if you want a specific map generation seed.
+  levelSeed: "3501087674430236181"
+  # One of: creative, survival, adventure, spectator
+  gameMode: survival
+  # Message of the Day
+  motd: "Welcome to Minecraft on Kubernetes! - Steven Warren <3"
+  # If true, enable player-vs-player damage.
+  pvp: false
+  # One of: DEFAULT, FLAT, LARGEBIOMES, AMPLIFIED, CUSTOMIZED
+  levelType: DEFAULT
+  # When levelType == FLAT or CUSTOMIZED, this can be used to further customize map generation.
+  # ref: https://hub.docker.com/r/itzg/minecraft-server/
+  generatorSettings:
+  worldSaveName: world
+  # If set, this URL will be downloaded at startup and used as a starting point
+  downloadWorldUrl:
+  # force re-download of server file
+  forceReDownload: false
+  # If set, the modpack at this URL will be downloaded at startup
+  downloadModpackUrl:
+  # If true, old versions of downloaded mods will be replaced with new ones from downloadModpackUrl
+  removeOldMods: false
+  # Check accounts against Minecraft account service.
+  onlineMode: true
+  # If you adjust this, you may need to adjust resources.requests above to match.
+
+
+  rcon:
+    # enable rcon for remote control - set to false if not required
+    enabled: true
+    # external port must be unique across all mc server instances
+    nodePort: 30101
+    # required
+    serviceType: NodePort
+    password: "TODO - supply this as an override on the command line "
+
+# UNCOMMENT and supply an NFS mounted folder if you have backups of minecraft server
+# worlds that you would like to use as the starting point for the new server
+# extraVolumes:
+#   # define where the volume mounts in the container
+#   - volumeMounts:
+#       - name: bigdisk
+#         mountPath: /mnt/bigdisk
+#         readOnly: true
+#     # define the remote nfs mount to attach to above
+#     volumes:
+#       - name: bigdisk
+#         nfs:
+#           server: 192.168.86.32
+#           path: /mnt/bigdisk
+
+extraEnv:
+  # recommended rolling logs for saving disk
+  ENABLE_ROLLING_LOGS: true
+  # if this is true then minecraftServer properties above are always applied
+  # on every restart, if false they only apply at first run
+  OVERRIDE_SERVER_PROPERTIES: true
+  # if this is true then downloadWorldUrl is always loaded on restart
+  # useful for resetting the world but should be reset to false afterwards
+  # WARNING: setting this to true deletes your previous world data
+  FORCE_WORLD_COPY: false
+
+# required to save the world in persistant local-path storage (k3s default Storage Class)
+# by defualt this goes in /var/lib/rancher/k3s/storage on the executing node.
+# NOTE this ties the deployment to the first node it spins up on,
+# we could perhaps use an NFS mount to avoid this
+persistence:
+  annotations: {}
+  dataDir:
+    enabled: true
+    Size: 1Gi
+  # persistentVolumeReclaimPolicy: Retain
+
+# UNCOMMENT to choose which node to run on
+# nodeSelector:
+#   kubernetes.io/hostname: my-worker-node-name
